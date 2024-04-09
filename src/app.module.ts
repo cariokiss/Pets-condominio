@@ -23,4 +23,4 @@ import { PetsModule } from './list/pets/pets.module';
   controllers: [],
   providers: [],
 })
-export class ListModule {}
+export class AppModule {}
