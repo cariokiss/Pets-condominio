@@ -8,7 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-    .setTitle('TODOApp API')
+    .setTitle('PETScondominio API')
     .setVersion('0.0.1')
     .build();
 

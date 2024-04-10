@@ -24,5 +24,28 @@ export class PetsService {
         async create(data: any) {
             return await this.petsRepository.save(this.petsRepository.create(data))
         }
+
+
+    async adicionarPet(petData: Partial<PetsEntity>): Promise<PetsEntity> {
+        const { nomeDono } = petData;
+
+        // Verificar se o dono já existe
+        let owner = await this.petsRepository.findOne({ where: { nomeDono } });
+
+        if (owner) {
+            // Se o dono já existe, incrementar a quantidade de animais
+            owner.quantAnimais += 1;
+            await this.petsRepository.save(owner);
+            return owner;
+        } else {
+            // Se o dono não existe, criar um novo registro
+            const newPet = this.petsRepository.create({
+                ...petData,
+                quantAnimais: 1 // Iniciar com 1 animal
+            });
+            return this.petsRepository.save(newPet);
+        }
+    }
 }
+
 
