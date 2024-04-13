@@ -1,17 +1,14 @@
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from 'typeorm';
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, BeforeInsert } from "typeorm";
 
 @Entity({ name: 'pets' })
 export class PetsEntity {
-    @PrimaryGeneratedColumn() // Esta coluna será sua chave primária e será automaticamente incrementada
-    id: number;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
     @Column({ name: 'nome_do_dono' })
     nomeDono: string;
 
-    @Column({ name: 'quantidade_de_animais' })
+    @Column({ name: 'quantidade_de_animais', type: 'int', default: 1 })
     quantAnimais: number;
 
     @Column({ name: 'nome_do_animal' })
@@ -33,18 +30,12 @@ export class PetsEntity {
     blocoApt: string;
 
     @Column({ name: 'número_do_apartamento' })
-    numeroApt: number;  
-}
+    numeroApt: number;
 
-@Injectable()
-export class PetsService {
-    constructor(
-        @InjectRepository(PetsEntity)
-        private readonly petsRepository: Repository<PetsEntity>,
-    ) {}
-
-    async criarPet(novoPetData: Partial<PetsEntity>): Promise<PetsEntity> {
-        const novoPet = this.petsRepository.create(novoPetData);
-        return await this.petsRepository.save(novoPet);
+    // Método que será chamado antes de inserir um novo registro
+    @BeforeInsert()
+    updateQuantAnimais() {
+        this.quantAnimais = 1; // Define a quantidade inicial como 1 ao inserir
     }
 }
+    
