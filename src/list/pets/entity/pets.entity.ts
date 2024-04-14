@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, BeforeInsert } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, BeforeInsert, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from "typeorm";
 
 @Entity({ name: 'pets' })
 export class PetsEntity {
@@ -31,6 +31,15 @@ export class PetsEntity {
 
     @Column({ name: 'número_do_apartamento' })
     numeroApt: number;
+
+    @CreateDateColumn({ name: 'created_at' })
+    createdAt: string;
+
+    @UpdateDateColumn({ name: 'update_at' })
+    updatedAt: string;
+
+    @DeleteDateColumn({ name: 'deleted_at' })
+    deletedAt: string;
 
     // Método que será chamado antes de inserir um novo registro
     @BeforeInsert()
