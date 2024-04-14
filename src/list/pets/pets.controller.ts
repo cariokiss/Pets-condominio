@@ -32,4 +32,10 @@ export class PetsController {
     async delete(@Param('id') id: string): Promise<void> {
         await this.petsService.delete(id);
     }
+
+    // Rota customizada para atualizar a quantidade de animais por nome do dono
+    @Put('update-quantidade/:nomeDono')
+    async updateQuantAnimaisByOwnerName(@Param('nomeDono') nomeDono: string): Promise<PetsEntity[]> {
+        return await this.petsService.updateQuantAnimaisByOwnerName(nomeDono);
+    }
 }
