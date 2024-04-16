@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { PetsEntity } from './entity/pets.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,11 +16,7 @@ export class PetsService {
     }
 
     async findOne(id: string): Promise<PetsEntity> {
-        try {
-            return await this.petsRepository.findOneOrFail({ where: { id } });
-        } catch (error) {
-            throw new NotFoundException(`Pet with ID '${id}' not found`);
-        }
+        return await this.petsRepository.findOne({ where: { id } });
     }
 
     async create(data: CreatePetDto): Promise<PetsEntity> {
@@ -52,25 +48,48 @@ export class PetsService {
 
     async update(id: string, data: any): Promise<PetsEntity> {
         const pet = await this.findOne(id);
-        return await this.petsRepository.save({ ...pet, ...data });
+        if (!pet) {
+            throw new Error(`Pet with ID '${id}' not found`);
+        }
+        const updatedPet = { ...pet, ...data };
+        return await this.petsRepository.save(updatedPet);
     }
 
     async delete(id: string): Promise<void> {
-        await this.findOne(id);
+        const pet = await this.findOne(id);
+        if (!pet) {
+            throw new Error(`Pet with ID '${id}' not found`);
+        }
         await this.petsRepository.softDelete(id);
     }
 
-    async updateQuantAnimaisByOwnerName(nomeDono: string): Promise<PetsEntity[]> {
-        const ownerPets = await this.petsRepository.find({ where: { nomeDono } });
+    // Método para atualizar a quantidade de animais de todos os donos
+    async updateQuantidadeAnimais(): Promise<void> {
+        const allPets = await this.petsRepository.find();
 
-        if (ownerPets && ownerPets.length > 0) {
+        const ownerMap = new Map<string, number>();
+
+        // Itera sobre todos os animais para mapear a quantidade por dono
+        allPets.forEach(pet => {
+            const ownerName = pet.nomeDono;
+            if (ownerMap.has(ownerName)) {
+                ownerMap.set(ownerName, ownerMap.get(ownerName) + 1);
+            } else {
+                ownerMap.set(ownerName, 1);
+            }
+        });
+
+        // Atualiza a quantidade de animais por dono no banco de dados
+        const promises: Promise<PetsEntity>[] = [];
+        for (const [ownerName, quantity] of ownerMap.entries()) {
+            const ownerPets = await this.petsRepository.find({ where: { nomeDono: ownerName } });
             ownerPets.forEach(pet => {
-                pet.quantAnimais = ownerPets.length; // Atualiza a quantidade de animais para o dono
+                pet.quantAnimais = quantity;
+                promises.push(this.petsRepository.save(pet));
             });
-
-            await this.petsRepository.save(ownerPets); // Salva as alterações no banco de dados
         }
 
-        return ownerPets; // Retorna a lista de animais do dono após a atualização
+        // Espera todas as atualizações serem concluídas
+        await Promise.all(promises);
     }
 }
